@@ -1,0 +1,13 @@
+node_modules
+.npm-cache
+node-compile-cache
+git-meta
+dist
+*.log
+.DS_Store
+*.local
+.env
+.env.*
+!.env.example
+coverage
+*.tsbuildinfo
