@@ -10,34 +10,37 @@ interface RescueModeProps {
 }
 
 export function getSuggestedAction(item: Item) {
-  if (item.currentZone?.includes("Main Hall")) {
-    return "Check Main Hall sound desk and presenter table";
+  if (item.currentZone?.includes("אולם") || item.currentZone?.includes("Main Hall")) {
+    return "בדקו את עמדת הסאונד ושולחן המרצה באולם הראשי";
   }
-  if (item.currentZone?.includes("Registration")) {
-    return "Ask Booth 3 team and scan the registration desk";
+  if (item.currentZone?.includes("הרשמה") || item.currentZone?.includes("Registration")) {
+    return "שאלו את צוות דוכן 3 וסרקו את עמדת ההרשמה";
   }
-  if (item.currentZone?.includes("Robotics")) {
-    return "Send runner to Robotics Lab";
+  if (item.currentZone?.includes("רובוטיקה") || item.currentZone?.includes("Robotics")) {
+    return "שלחו רץ למעבדת הרובוטיקה";
   }
   if (item.responsiblePerson) {
-    return `Call ${item.responsiblePerson}`;
+    return `להתקשר אל ${item.responsiblePerson}`;
   }
-  return "Sweep last known zone and call the warehouse manager";
+  return "לסרוק את האזור האחרון ולעדכן את מנהל המחסן";
 }
 
 export function RescueMode({ items, people, rescueTasks, onCreateTask, onCompleteTask, onOpenItem }: RescueModeProps) {
   const missingItems = items.filter((item) => item.status === "missing");
-  const leadRunner = people.find((person) => person.name === "Ben") ?? people[0];
+  const leadRunner = people.find((person) => person.id === "person-ben") ?? people[0];
 
   return (
     <section className="panel rescuePanel">
       <div className="panelHeader">
         <div>
-          <p className="eyebrow">Active recovery</p>
-          <h2>Missing Item Rescue Mode</h2>
+          <p className="eyebrow">חילוץ פעיל</p>
+          <h2>מצב חילוץ לפריט חסר</h2>
         </div>
-        <span className="dangerPill">{missingItems.length} missing</span>
+        <span className="dangerPill">{missingItems.length} חסרים</span>
       </div>
+      <p className="screenHint">
+        כשפריט מסומן כחסר, גירגארד מציע את הפעולה הבאה ופותח משימת חילוץ לאדם אחראי.
+      </p>
 
       <div className="rescueGrid">
         <div className="rescueCandidates">
@@ -53,8 +56,8 @@ export function RescueMode({ items, people, rescueTasks, onCreateTask, onComplet
                   </span>
                 </button>
                 <div className="rescueDetails">
-                  <span>Last owner: {item.responsiblePerson ?? "Unknown"}</span>
-                  <span>Last zone: {item.currentZone ?? "Unknown"}</span>
+                  <span>אחראי/ת אחרון/ה: {item.responsiblePerson ?? "לא ידוע"}</span>
+                  <span>אזור אחרון: {item.currentZone ?? "לא ידוע"}</span>
                   <strong>{getSuggestedAction(item)}</strong>
                 </div>
                 <button
@@ -63,33 +66,33 @@ export function RescueMode({ items, people, rescueTasks, onCreateTask, onComplet
                   onClick={() => onCreateTask(item)}
                   type="button"
                 >
-                  {existingTask ? `Task open for ${leadRunner.name}` : "Create Rescue Task"}
+                  {existingTask ? `משימה פתוחה עבור ${leadRunner.name}` : "יצירת משימת חילוץ"}
                 </button>
               </article>
             );
           })}
           {missingItems.length === 0 && (
-            <div className="emptyState successState">No missing items. Rescue Mode is standing by.</div>
+            <div className="emptyState successState">אין פריטים חסרים. מצב חילוץ בהמתנה.</div>
           )}
         </div>
 
         <div className="taskBoard">
-          <h3>Rescue Tasks</h3>
+          <h3>משימות חילוץ</h3>
           {rescueTasks.map((task) => (
             <article className={`taskItem task-${task.status}`} key={task.id}>
               <div>
                 <strong>{task.itemName}</strong>
                 <p>{task.suggestedAction}</p>
-                <span>Assigned to {task.assignedTo}</span>
+                <span>מוקצה אל {task.assignedTo}</span>
               </div>
               {task.status === "open" && (
                 <button onClick={() => onCompleteTask(task.id)} type="button">
-                  Done
+                  בוצע
                 </button>
               )}
             </article>
           ))}
-          {rescueTasks.length === 0 && <div className="emptyState">No rescue tasks yet.</div>}
+          {rescueTasks.length === 0 && <div className="emptyState">אין עדיין משימות חילוץ.</div>}
         </div>
       </div>
     </section>

@@ -11,7 +11,7 @@ import { ReturnRitual } from "./ReturnRitual";
 import { StatusBadge } from "./StatusBadge";
 import { ZoneStatusCard } from "./ZoneStatusCard";
 
-const STORAGE_KEY = "gearguard-event-command-center-v1";
+const STORAGE_KEY = "gearguard-event-command-center-v3-he";
 
 type TabKey = "dashboard" | "checkout" | "return" | "rescue";
 
@@ -91,7 +91,7 @@ export function EventCommandCenter() {
   const [activeTab, setActiveTab] = useState<TabKey>("dashboard");
   const [selectedPersonId, setSelectedPersonId] = useState(people[0].id);
   const [selectedZoneId, setSelectedZoneId] = useState(zones[0].id);
-  const [conditionOut, setConditionOut] = useState("Working, visual check passed");
+  const [conditionOut, setConditionOut] = useState("תקין, בדיקה ויזואלית עברה");
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
 
   const closureScore = useMemo(() => calculateClosureScore(items), [items]);
@@ -142,7 +142,7 @@ export function EventCommandCenter() {
       return;
     }
 
-    const log = makeActivity(`${person.name} checked out ${item.name} to ${zone.name}`, "info");
+    const log = makeActivity(`${person.name} הוציא/ה את ${item.name} אל ${zone.name}`, "info");
     setItems((current) =>
       current.map((entry) =>
         entry.id === itemId
@@ -165,10 +165,10 @@ export function EventCommandCenter() {
   };
 
   const returnActionCopy: Record<Extract<ItemStatus, "returned_ok" | "damaged" | "missing" | "needs_inspection">, string> = {
-    returned_ok: "returned OK",
-    damaged: "returned damaged",
-    missing: "marked missing",
-    needs_inspection: "sent to inspection",
+    returned_ok: "הוחזר תקין",
+    damaged: "הוחזר פגום",
+    missing: "סומן כחסר",
+    needs_inspection: "נשלח לבדיקה",
   };
 
   const updateReturnStatus = (
@@ -181,15 +181,15 @@ export function EventCommandCenter() {
     }
 
     const severity = status === "returned_ok" ? "success" : status === "missing" || status === "damaged" ? "danger" : "warning";
-    const log = makeActivity(`${item.name} ${returnActionCopy[status]} by ${item.responsiblePerson ?? "warehouse"}`, severity);
+    const log = makeActivity(`${item.name} ${returnActionCopy[status]} על ידי ${item.responsiblePerson ?? "המחסן"}`, severity);
     const conditionIn =
       status === "returned_ok"
-        ? "Returned working"
+        ? "הוחזר תקין ועובד"
         : status === "damaged"
-          ? "Returned damaged"
+          ? "הוחזר פגום"
           : status === "missing"
-            ? "Not returned - rescue required"
-            : "Returned, inspection handoff opened";
+            ? "לא הוחזר - נדרשת משימת חילוץ"
+            : "הוחזר - נפתחה מסירה לבדיקה";
 
     setItems((current) =>
       current.map((entry) =>
@@ -199,7 +199,7 @@ export function EventCommandCenter() {
                 ...entry,
                 status,
                 conditionIn,
-                currentZone: status === "returned_ok" || status === "needs_inspection" || status === "damaged" ? "Warehouse Base" : entry.currentZone,
+                currentZone: status === "returned_ok" || status === "needs_inspection" || status === "damaged" ? "בסיס מחסן" : entry.currentZone,
               },
               log,
             )
@@ -213,7 +213,7 @@ export function EventCommandCenter() {
   };
 
   const createRescueTask = (item: Item) => {
-    const assignedTo = people.find((person) => person.name === "Ben")?.name ?? people[0].name;
+    const assignedTo = people.find((person) => person.id === "person-ben")?.name ?? people[0].name;
     const suggestedAction = getSuggestedAction(item);
     const task: RescueTask = {
       id: crypto.randomUUID(),
@@ -223,7 +223,7 @@ export function EventCommandCenter() {
       suggestedAction,
       status: "open",
     };
-    const log = makeActivity(`Rescue task created for ${item.name} - assigned to ${assignedTo}`, "danger");
+    const log = makeActivity(`נוצרה משימת חילוץ עבור ${item.name} - הוקצתה אל ${assignedTo}`, "danger");
     setRescueTasks((current) => [task, ...current]);
     addActivity(log);
   };
@@ -233,7 +233,7 @@ export function EventCommandCenter() {
     if (!task) {
       return;
     }
-    const log = makeActivity(`Rescue task completed for ${task.itemName}`, "success");
+    const log = makeActivity(`משימת חילוץ הושלמה עבור ${task.itemName}`, "success");
     setRescueTasks((current) => current.map((entry) => (entry.id === taskId ? { ...entry, status: "done" } : entry)));
     addActivity(log);
   };
@@ -248,30 +248,51 @@ export function EventCommandCenter() {
   };
 
   const tabs: Array<{ key: TabKey; label: string; count?: number }> = [
-    { key: "dashboard", label: "Command Center" },
-    { key: "checkout", label: "Warehouse Checkout", count: items.filter((item) => item.status === "available").length },
-    { key: "return", label: "Return Ritual", count: missionItems(items).length },
-    { key: "rescue", label: "Rescue Mode", count: items.filter((item) => item.status === "missing").length },
+    { key: "dashboard", label: "מרכז פיקוד" },
+    { key: "checkout", label: "יציאה מהמחסן", count: items.filter((item) => item.status === "available").length },
+    { key: "return", label: "טקס החזרה", count: missionItems(items).length },
+    { key: "rescue", label: "מצב חילוץ", count: items.filter((item) => item.status === "missing").length },
+  ];
+
+  const guideSteps: Array<{ number: string; title: string; copy: string; tab: TabKey }> = [
+    {
+      number: "1",
+      title: "הוציאו ציוד מהמחסן",
+      copy: "בחרו אחראי ואזור, ואז סרקו פריט זמין.",
+      tab: "checkout",
+    },
+    {
+      number: "2",
+      title: "בצעו טקס החזרה",
+      copy: "סמנו פריט כתקין, פגום, חסר או דורש בדיקה.",
+      tab: "return",
+    },
+    {
+      number: "3",
+      title: "חילוץ פריט חסר",
+      copy: "אם משהו חסר, פתחו משימת חילוץ עם פעולה מומלצת.",
+      tab: "rescue",
+    },
   ];
 
   return (
     <main className="appShell">
       <header className="commandHeader">
         <div>
-          <p className="eyebrow">GearGuard Event Command Center</p>
+          <p className="eyebrow">מרכז פיקוד גירגארד</p>
           <h1>{event.name}</h1>
-          <p className="headerCopy">Return-to-Base mission for Afeka campus equipment, owners, zones, and closure readiness.</p>
+          <p className="headerCopy">משימת חזרה לבסיס לציוד הקמפוס של אפקה, כולל אחראים, אזורים ומוכנות לסגירה רשמית.</p>
         </div>
         <div className="headerStatus">
           <span className={readyToClose ? "statusLight ready" : "statusLight blocked"} />
-          <strong>{readyToClose ? "Event Ready to Close" : "Closure Blocked"}</strong>
+          <strong>{readyToClose ? "האירוע מוכן לסגירה" : "הסגירה חסומה"}</strong>
           <button onClick={resetDemo} type="button">
-            Reset Demo
+            איפוס דמו
           </button>
         </div>
       </header>
 
-      <nav className="tabBar" aria-label="GearGuard screens">
+      <nav className="tabBar" aria-label="מסכי גירגארד">
         {tabs.map((tab) => (
           <button
             className={activeTab === tab.key ? "active" : ""}
@@ -285,33 +306,51 @@ export function EventCommandCenter() {
         ))}
       </nav>
 
+      <section className="missionBriefing panel" aria-label="תדריך דמו מהיר">
+        <div className="briefCopy">
+          <p className="eyebrow">התחלה מהירה</p>
+          <h2>איך בודקים את הדמו?</h2>
+          <p>המערכת מנהלת משימת חזרה לבסיס: כל פריט צריך אחראי, אזור, מצב יציאה ומצב חזרה לפני שאפשר לסגור אירוע.</p>
+        </div>
+        <div className="briefSteps">
+          {guideSteps.map((step) => (
+            <button className="briefStep" key={step.number} onClick={() => setActiveTab(step.tab)} type="button">
+              <span className="stepNumber">{step.number}</span>
+              <span>
+                <strong>{step.title}</strong>
+                <em>{step.copy}</em>
+              </span>
+            </button>
+          ))}
+        </div>
+      </section>
+
       {activeTab === "dashboard" && (
         <div className="dashboardGrid">
           <section className="closureHero panel">
             <div className="heroCopy">
-              <p className="eyebrow">Big status</p>
-              <h2>Event Closure Score</h2>
+              <p className="eyebrow">סטטוס ראשי</p>
+              <h2>ציון סגירת אירוע</h2>
               <p>
-                This is not inventory. It is the live chain of responsibility that decides whether the event can
-                officially end.
+                זה לא מלאי רגיל. זו שרשרת אחריות חיה שקובעת אם האירוע יכול להסתיים רשמית.
               </p>
             </div>
             <ClosureScoreBar score={event.closureScore} ready={readyToClose} />
           </section>
 
-          <section className="metricGrid" aria-label="Event metrics">
-            <MetricCard label="Items checked out" value={stats.checkedOut} tone="progress" detail={`${stats.outside} still outside base`} />
-            <MetricCard label="Items returned" value={stats.returned} tone="ok" detail="OK or inspection handoff" />
-            <MetricCard label="Missing critical items" value={stats.missingCritical} tone={stats.missingCritical ? "danger" : "ok"} detail="Blocks event closure" />
-            <MetricCard label="Damaged items" value={stats.damagedOrCheck} tone={stats.damagedOrCheck ? "attention" : "ok"} detail="Damaged or needs-check" />
-            <MetricCard label="Open responsibility chains" value={stats.openChains} tone={stats.openChains ? "attention" : "ok"} detail="Still assigned to people" />
+          <section className="metricGrid" aria-label="מדדי אירוע">
+            <MetricCard label="פריטים שיצאו" value={stats.checkedOut} tone="progress" detail={`${stats.outside} עדיין מחוץ לבסיס`} />
+            <MetricCard label="פריטים שחזרו" value={stats.returned} tone="ok" detail="תקין או הועבר לבדיקה" />
+            <MetricCard label="פריטים קריטיים חסרים" value={stats.missingCritical} tone={stats.missingCritical ? "danger" : "ok"} detail="חוסם סגירת אירוע" />
+            <MetricCard label="פריטים פגומים" value={stats.damagedOrCheck} tone={stats.damagedOrCheck ? "attention" : "ok"} detail="פגום או דורש בדיקה" />
+            <MetricCard label="שרשראות אחריות פתוחות" value={stats.openChains} tone={stats.openChains ? "attention" : "ok"} detail="עדיין משויכות לאנשים" />
           </section>
 
           <section className="panel zonesPanel">
             <div className="panelHeader">
               <div>
-                <p className="eyebrow">Campus map</p>
-                <h2>Event Zones</h2>
+                <p className="eyebrow">מפת הקמפוס</p>
+                <h2>אזורי האירוע</h2>
               </div>
             </div>
             <div className="zoneGrid">
@@ -326,8 +365,8 @@ export function EventCommandCenter() {
           <section className="panel outsidePanel">
             <div className="panelHeader">
               <div>
-                <p className="eyebrow">Currently accountable</p>
-                <h2>Equipment Outside Base</h2>
+                <p className="eyebrow">אחריות בזמן אמת</p>
+                <h2>ציוד מחוץ לבסיס</h2>
               </div>
             </div>
             <div className="compactItemList">
@@ -337,7 +376,7 @@ export function EventCommandCenter() {
                   <button className="compactItem" key={item.id} onClick={() => setSelectedItem(item)} type="button">
                     <span>
                       <strong>{item.name}</strong>
-                      <em>{item.responsiblePerson ?? "Warehouse"} - {item.currentZone ?? "Base"}</em>
+                      <em>{item.responsiblePerson ?? "מחסן"} - {item.currentZone ?? "בסיס"}</em>
                     </span>
                     <StatusBadge status={item.status} />
                   </button>

@@ -12,14 +12,14 @@ export function ItemPassportModal({ item, onClose }: ItemPassportModalProps) {
   }
 
   return (
-    <div className="modalOverlay" role="dialog" aria-modal="true" aria-label={`${item.name} item passport`}>
+    <div className="modalOverlay" role="dialog" aria-modal="true" aria-label={`דרכון פריט של ${item.name}`}>
       <aside className="passportDrawer">
         <div className="passportHeader">
           <div>
-            <p className="eyebrow">Item Passport</p>
+            <p className="eyebrow">דרכון פריט</p>
             <h2>{item.name}</h2>
           </div>
-          <button className="iconButton" onClick={onClose} type="button" aria-label="Close item passport">
+          <button className="iconButton" onClick={onClose} type="button" aria-label="סגירת דרכון פריט">
             X
           </button>
         </div>
@@ -36,39 +36,39 @@ export function ItemPassportModal({ item, onClose }: ItemPassportModalProps) {
 
         <div className="passportFacts">
           <div>
-            <span>Category</span>
+            <span>קטגוריה</span>
             <strong>{item.category}</strong>
           </div>
           <div>
-            <span>Home base</span>
+            <span>בסיס בית</span>
             <strong>{item.homeLocation}</strong>
           </div>
           <div>
-            <span>Current owner</span>
-            <strong>{item.responsiblePerson ?? "Warehouse"}</strong>
+            <span>אחראי/ת נוכחי/ת</span>
+            <strong>{item.responsiblePerson ?? "מחסן"}</strong>
           </div>
           <div>
-            <span>Current zone</span>
-            <strong>{item.currentZone ?? "Base"}</strong>
+            <span>אזור נוכחי</span>
+            <strong>{item.currentZone ?? "בסיס"}</strong>
           </div>
           <div>
-            <span>Condition out</span>
-            <strong>{item.conditionOut ?? "Not checked out"}</strong>
+            <span>מצב ביציאה</span>
+            <strong>{item.conditionOut ?? "לא יצא"}</strong>
           </div>
           <div>
-            <span>Condition in</span>
-            <strong>{item.conditionIn ?? "Awaiting return"}</strong>
+            <span>מצב בחזרה</span>
+            <strong>{item.conditionIn ?? "ממתין להחזרה"}</strong>
           </div>
         </div>
 
         <div className="passportHistory">
-          <h3>History</h3>
+          <h3>היסטוריה</h3>
           {item.history.map((entry) => (
             <div className={`timelineItem severity-${entry.severity}`} key={entry.id}>
               <span className="timelineDot" />
               <div>
                 <p>{entry.text}</p>
-                <time>{new Date(entry.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</time>
+                <time>{new Date(entry.timestamp).toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit" })}</time>
               </div>
             </div>
           ))}

@@ -34,14 +34,17 @@ export function CheckoutPanel({
     <section className="panel actionPanel">
       <div className="panelHeader">
         <div>
-          <p className="eyebrow">Warehouse gate</p>
-          <h2>Scan / Check Out</h2>
+          <p className="eyebrow">שער המחסן</p>
+          <h2>סריקה / הוצאה</h2>
         </div>
       </div>
+      <p className="screenHint">
+        התחילו כאן: בוחרים מי אחראי על הציוד, לאיזה אזור הוא יוצא, ואז לוחצים סריקה / הוצאה על הפריט.
+      </p>
 
       <div className="controlGrid">
         <label>
-          Volunteer
+          מתנדב/ת
           <select value={selectedPersonId} onChange={(event) => onPersonChange(event.target.value)}>
             {people.map((person) => (
               <option key={person.id} value={person.id}>
@@ -51,7 +54,7 @@ export function CheckoutPanel({
           </select>
         </label>
         <label>
-          Event zone
+          אזור אירוע
           <select value={selectedZoneId} onChange={(event) => onZoneChange(event.target.value)}>
             {zones.map((zone) => (
               <option key={zone.id} value={zone.id}>
@@ -61,12 +64,12 @@ export function CheckoutPanel({
           </select>
         </label>
         <label>
-          Condition out
+          מצב ביציאה
           <select value={conditionOut} onChange={(event) => onConditionChange(event.target.value)}>
-            <option>Working, visual check passed</option>
-            <option>Working, battery checked</option>
-            <option>Complete kit, seals intact</option>
-            <option>Minor cosmetic wear, usable</option>
+            <option>תקין, בדיקה ויזואלית עברה</option>
+            <option>תקין, סוללה נבדקה</option>
+            <option>ערכה מלאה, חותמות תקינות</option>
+            <option>שחיקה קוסמטית קלה, שמיש</option>
           </select>
         </label>
       </div>
@@ -86,11 +89,11 @@ export function CheckoutPanel({
               <StatusBadge status={item.status} />
             </div>
             <button className="primaryButton" onClick={() => onCheckout(item.id)} type="button">
-              Scan / Check Out
+              סריקה והוצאה לאירוע
             </button>
           </article>
         ))}
-        {availableItems.length === 0 && <div className="emptyState">All listed equipment has joined the event mission.</div>}
+        {availableItems.length === 0 && <div className="emptyState">כל הציוד הרשום כבר הצטרף למשימת האירוע.</div>}
       </div>
     </section>
   );

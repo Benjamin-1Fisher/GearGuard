@@ -18,10 +18,10 @@ export function ZoneStatusCard({ zone, items }: ZoneStatusCardProps) {
       </div>
       <div className="zoneNumbers">
         <strong>{outsideCount}</strong>
-        <span>active items</span>
+        <span>פריטים פעילים</span>
       </div>
       <div className={issueCount > 0 ? "zoneIssue attention" : "zoneIssue ok"}>
-        {issueCount > 0 ? `${issueCount} unresolved` : "Clear"}
+        {issueCount > 0 ? `${issueCount} פתוחים` : "נקי"}
       </div>
     </article>
   );
